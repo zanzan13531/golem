@@ -17,6 +17,7 @@ def golemify(B, x):
 
     for i in range (d): # outer sum
         for k in range(n): # inner sum
+            innerThing = torch.square(x.toList()[i])
             sum = torch.add(sum, 0) # replace the 0 with the actual sum contents, no idea if this is a matrix of a scalar
 
     logSum = torch.log(sum) # log(sum stuff) : log of the sum stuff
