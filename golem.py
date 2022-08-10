@@ -25,7 +25,7 @@ def golemify(B, x):
 
     # second half:
 
-    I = torch.eye(B.size(dim = 0)) # I : creating identity matrix of the same dimention as B
+    I = torch.eye(d) # I : creating identity matrix of the same dimention as B
     inner = torch.sub(I, B)  # I - B : subtracting B from the identity matrix
     secondHalf = torch.logdet(inner) # log|det(I - B)| : I think this is a scalar?
 
