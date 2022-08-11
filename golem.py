@@ -15,14 +15,19 @@ def golemify(B, x):
 
     sum = torch.tensor() # initlaizing sum
 
+    # !!! this assumes that the sum results in a scalar, not sure if that's right or not
     for i in range (d): # outer sum
         for k in range(n): # inner sum
-            innerThing = torch.square(x.toList()[i])
-            sum = torch.add(sum, 0) # replace the 0 with the actual sum contents, no idea if this is a matrix of a scalar
+            innerThingA = x[i] ** k
+            innerThingB = torch.transpose(B, 0, 1) # not sure if the transpose is supposed to happen before or after the index getting
+            innerThingB = innerThingB[:, i:i + 1]
+            innerThing = innerThingA - innerThingB
+            innerThing = innerThing ** 2
+            sum = torch.add(sum, innerThing) # adds the inner stuff to them sum
 
     logSum = torch.log(sum) # log(sum stuff) : log of the sum stuff
 
-    firstHalf = torch.mul(sum, d/2.0) # d*log(sum stuff)/2 : first half of the equation, not sure if this is a scalar
+    firstHalf = torch.mul(logSum, d/2.0) # d*log(sum stuff)/2 : first half of the equation, not sure if this is a scalar
 
     # second half:
 
