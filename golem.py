@@ -4,14 +4,14 @@ import torch
 
 # B = weighted adjacency matrix
 # x = set of variables being represented by the DAG
-# !!! assuming both B is a square of d by d size, and that x is a 2D matrix with dimensions n by d, where there are d variables and n cases of each (basically data points)
+# !!! assuming both B is a square of d by d size, and that x is a 2D matrix with dimensions d by x, where there are d variables and n cases of each (basically data points)
 def golemify(B, x): 
 
     # first half: 
     firstHalf = torch.tensor()
 
-    n = x.size(dim = 0); # n : number of data points per variable in x
-    d = x.size(dim = 1) # d : number of variables in x
+    d = x.size(dim = 0) # d : number of variables in x
+    n = x.size(dim = 1); # n : number of data points per variable in x
 
     sum = 0 # initlaizing sum
 
@@ -19,16 +19,16 @@ def golemify(B, x):
     for i in range (d): # outer sum
         for k in range(n): # inner sum
 
-            innerThingA = x[k, i] # x^k_i : first part which takes the element at index [k, i] of x
+            innerThingA = x[i, k] # x^k_i : first part which takes the element at index [k, i] of x
 
-            innerThingB = B[i, :] # B_i : ith column of B
+            innerThingB = B[:, i] # B_i : ith column of B
             innerThingB = torch.transpose(innerThingB, 0, 1) # B^T_i : ith column of B transposed (rotated 90 degrees)
 
             innerThingC = x[k, :] # x^k : kth column of x                                                                       
 
             innerThing = torch.mul(innerThingB, innerThingC)
             innerThing = innerThingA - innerThingB
-            innerThing = innerThing ** 2
+            innerThing = innerThing ** 2.0
             sum = torch.add(sum, innerThing) # adds the inner stuff to them sum
 
     logSum = torch.log(sum) # log(sum stuff) : log of the sum stuff
