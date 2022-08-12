@@ -26,14 +26,14 @@ def golemify(B, x):
 
             innerThingC = x[k, :] # x^k : kth column of x                                                                       
 
-            innerThing = torch.mul(innerThingB, innerThingC)
-            innerThing = innerThingA - innerThingB
-            innerThing = innerThing ** 2.0
+            innerThing = torch.mul(innerThingB, innerThingC) # B^T_i * x^k : matrix multiplication of the two previous parts
+            innerThing = innerThingA - innerThingB # x^k_i - B^T_i * x^k : entire thing except for the square
+            innerThing = innerThing ** 2.0 # squared
             sum = torch.add(sum, innerThing) # adds the inner stuff to them sum
 
     logSum = torch.log(sum) # log(sum stuff) : log of the sum stuff
 
-    firstHalf = torch.mul(logSum, d/2.0) # d*log(sum stuff)/2 : first half of the equation, not sure if this is a scalar
+    firstHalf = torch.mul(logSum, d/2.0) # d*log(sum stuff)/2 : first half of the equation, pretty sure if this is a scalar
 
     # second half:
 
