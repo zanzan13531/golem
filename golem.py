@@ -4,23 +4,29 @@ import torch
 
 # B = weighted adjacency matrix
 # x = set of variables being represented by the DAG
-# !!! assuming both B and x are square and of the same dimensions?
+# !!! assuming both B is a square of d by d size, and that x is a 2D matrix with dimensions n by d, where there are d variables and n cases of each (basically data points)
 def golemify(B, x): 
 
     # first half: 
     firstHalf = torch.tensor()
 
-    n=1; # what does n equal?
-    d = x.size(dim = 0) # d : size of the set of X
+    n = x.size(dim = 0); # n : number of data points per variable in x
+    d = x.size(dim = 1) # d : number of variables in x
 
-    sum = torch.tensor() # initlaizing sum
+    sum = 0 # initlaizing sum
 
     # !!! this assumes that the sum results in a scalar, not sure if that's right or not
     for i in range (d): # outer sum
         for k in range(n): # inner sum
-            innerThingA = x[i] ** k
-            innerThingB = torch.transpose(B, 0, 1) # not sure if the transpose is supposed to happen before or after the index getting
-            innerThingB = innerThingB[:, i:i + 1]
+
+            innerThingA = x[k, i] # x^k_i : first part which takes the element at index [k, i] of x
+
+            innerThingB = B[i, :] # B_i : ith column of B
+            innerThingB = torch.transpose(innerThingB, 0, 1) # B^T_i : ith column of B transposed (rotated 90 degrees)
+
+            innerThingC = x[k, :] # x^k : kth column of x                                                                       
+
+            innerThing = torch.mul(innerThingB, innerThingC)
             innerThing = innerThingA - innerThingB
             innerThing = innerThing ** 2
             sum = torch.add(sum, innerThing) # adds the inner stuff to them sum
