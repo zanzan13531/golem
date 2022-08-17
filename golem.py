@@ -1,5 +1,6 @@
 import torch
 import torchvision
+import torchvision.transforms as transforms
 import math
 
 learning_rate = 0.1
@@ -10,6 +11,17 @@ def netFunction():
 def L3(B, x):
     print("placeholder")
 
+
+
+transform_train = transforms.Compose([
+    transforms.RandomCrop(32, padding=4),
+    transforms.RandomHorizontalFlip(),
+    transforms.ToTensor(),
+])
+
+transform_test = transforms.Compose([
+    transforms.ToTensor(),
+])
 
 # 1
 train_dataset = torchvision.datasets.CIFAR10(root='../data/', train=True, download=True, transform=transform_train)
