@@ -7,6 +7,14 @@ import math
 
 lambda1 = 1
 lambda2 = 1
+
+class Net(torch.nn.Module):
+    def __init__(self):
+        super(Net, self).__init__()
+
+    def forward(self, x):
+        output = torch.transpose(net.weight * x)
+        return output
     
 def netFunction(x):
     return (torch.transpose(net.weight * x)) # supposedly the function for net, no idea if it works/how it works
@@ -75,8 +83,8 @@ test_dataset = torchvision.datasets.CIFAR10(root='../data/', train=False, downlo
 train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=128, shuffle=True, num_workers=4)
 test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=512, shuffle=False, num_workers=4)
 
-net = netFunction() #should be net function
-net = torch.nn.DataParallel(net)
+net = Net() #should be net function
+#net = torch.nn.DataParallel(net)
 
 optimizer = torch.optim.SGD(net.parameters(), lr=learning_rate)
 
