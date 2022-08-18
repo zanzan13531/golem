@@ -46,8 +46,8 @@ def L2(B, x):
 
     return(L2Result)
 
-def h(B):
-    return (torch.trace(torch.matrix_exp(torch.mul(B, B))) - B.size(dim = 0)) # tr(e^(B o B)) - d : characterization of DAGness function
+def h(B): #characterization of DAGness function
+    return (torch.trace(torch.matrix_exp(torch.mul(B, B))) - B.size(dim = 0)) # tr(e^(B o B)) - d : trace of the matrix exponential of the hadamard product of B and itself
 
 def scoreFunction2(B, x):
     return (L2(B, x) + torch.norm(B) + h(B))
@@ -99,7 +99,7 @@ def train(epoch):
         benign_outputs = net(inputs)
 
         # 8 
-        loss = L3(benign_outputs, targets)
+        loss = scoreFunction2(benign_outputs, targets)
 
         # 9
         loss.backward() # calculate gradients
