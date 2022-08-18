@@ -4,9 +4,12 @@ import torchvision.transforms as transforms
 import math
 
 
+
+lambda1 = 1
+lambda2 = 1
     
-def netFunction():
-    print("placeholder")
+def netFunction(x):
+    return (torch.transpose(net.weight * x)) # supposedly the function for net, no idea if it works/how it works
 
 # B = weighted adjacency matrix
 # x = set of variables being represented by the DAG
@@ -50,7 +53,7 @@ def h(B): #characterization of DAGness function
     return (torch.trace(torch.matrix_exp(torch.mul(B, B))) - B.size(dim = 0)) # tr(e^(B o B)) - d : trace of the matrix exponential of the hadamard product of B and itself
 
 def scoreFunction2(B, x):
-    return (L2(B, x) + torch.norm(B) + h(B))
+    return (L2(B, x) + lambda1 * torch.norm(B) + lambda2 * h(B)) # S2(B, x) = L2(B, x) + lambda1 * ||B||_1 + lambda2 * h(B) : score function
 
 
 learning_rate = 0.1
@@ -66,20 +69,15 @@ transform_test = transforms.Compose([
     transforms.ToTensor(),
 ])
 
-# 1
 train_dataset = torchvision.datasets.CIFAR10(root='../data/', train=True, download=True, transform=transform_train)
 test_dataset = torchvision.datasets.CIFAR10(root='../data/', train=False, download=True, transform=transform_test)
 
-# 2
 train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=128, shuffle=True, num_workers=4)
 test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=512, shuffle=False, num_workers=4)
 
-
-# 3
 net = netFunction() #should be net function
 net = torch.nn.DataParallel(net)
 
-# 4
 optimizer = torch.optim.SGD(net.parameters(), lr=learning_rate)
 
 
@@ -90,21 +88,16 @@ def train(epoch):
     correct = 0
     # total = 0
     total = len(train_dataset)
-    # 5
+
     for batch_idx, (inputs, targets) in enumerate(train_loader):
-        #  6
+
         optimizer.zero_grad()
 
-        # 7
         benign_outputs = net(inputs)
 
-        # 8 
         loss = scoreFunction2(benign_outputs, targets)
-
-        # 9
         loss.backward() # calculate gradients
 
-        # 10
         optimizer.step() # perform gradient descent to minimize the loss functions
 
 
