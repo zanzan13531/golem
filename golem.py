@@ -86,7 +86,6 @@ def train(epoch):
     net.train()
     train_loss = 0
     correct = 0
-    # total = 0
     total = len(train_dataset)
 
     for batch_idx, (inputs, targets) in enumerate(train_loader):
@@ -100,3 +99,48 @@ def train(epoch):
 
         optimizer.step() # perform gradient descent to minimize the loss functions
 
+
+
+        train_loss += loss.item()
+        _, predicted = benign_outputs.max(1)
+
+        correct += predicted.eq(targets).sum().item()
+
+    print('\nTotal benign train accuarcy:', 100. * correct / total)
+    print('Total benign train loss:', train_loss)
+
+
+def train2(epoch):
+    net.train()
+    for batch_idx, (data, target) in enumerate(train_loader):
+        optimizer.zero_grad()
+        output = net(data)
+        loss = scoreFunction2(output, target)
+        loss.backward()
+        optimizer.step()
+        print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
+            epoch, batch_idx * len(data), len(train_loader.dataset),
+            100. * batch_idx / len(train_loader), loss.item()))
+
+
+
+def test2(epoch):
+    print(f'\n[ Test epoch: {epoch} ]')
+    net.eval()
+    test_loss = 0
+    correct = 0
+    with torch.no_grad():
+        for data, target in test_loader:
+            output = net(data)
+            test_loss += scoreFunction2(output, target, reduction='sum').item()  # sum up batch loss
+            pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
+            correct += pred.eq(target.view_as(pred)).sum().item()
+
+    test_loss /= len(test_loader.dataset)
+
+    print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
+        test_loss, correct, len(test_loader.dataset),
+        100. * correct / len(test_loader.dataset)))
+
+train2(0)
+test2(0)
