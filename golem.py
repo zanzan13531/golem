@@ -1,23 +1,23 @@
 import torch
 import torchvision
 import torchvision.transforms as transforms
-import math
 
 
 
 lambda1 = 1
 lambda2 = 1
 
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
 class Net(torch.nn.Module):
-    def __init__(self):
-        super(Net, self).__init__()
+    def __init__(self, input_dim):
+        super().__init__()
+        self.L = torch.nn.Linear(input_dim, input_dim, bias = False)
 
     def forward(self, x):
-        output = torch.transpose(net.weight * x)
-        return output
-    
-def netFunction(x):
-    return (torch.transpose(net.weight * x)) # supposedly the function for net, no idea if it works/how it works
+        x = self.L(x)
+        return x
+   
 
 
 # B = weighted adjacency matrix
@@ -46,7 +46,7 @@ def L1(B, x):
             btixk = torch.mul(bti, xk) # B^T_i * x^k : matrix multiplication of the two previous parts
             xki_btixk = xki - btixk # x^k_i - B^T_i * x^k : entire thing except for the square
             xki_btixk_squared = xki_btixk ** 2.0 # squared
-            doubleSum = doubleSum + math.log(xki_btixk_squared) # takes the log of the inner sum and adds it to the total sum
+            doubleSum = doubleSum + torch.log(xki_btixk_squared) # takes the log of the inner sum and adds it to the total sum
 
     # second half:
     I = torch.eye(d) # I : creating identity matrix of the same dimention as B
@@ -85,7 +85,7 @@ def L2(B, x):
             xki_btixk_squared = xki_btixk ** 2.0 # squared
             doubleSum = doubleSum + xki_btixk_squared # adds the inner stuff to them sum
 
-    logDoubleSum = math.log(doubleSum) # log(sum stuff) : log of the sum stuff
+    logDoubleSum = torch.log(doubleSum) # log(sum stuff) : log of the sum stuff
 
     # second half:
     I = torch.eye(d) # I : creating identity matrix of the same dimention as B
@@ -126,20 +126,25 @@ test_dataset = torchvision.datasets.CIFAR10(root='../data/', train=False, downlo
 train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=128, shuffle=True, num_workers=4)
 test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=512, shuffle=False, num_workers=4)
 
-net = Net() #should be net function
+net = Net(train_dataset[0][0].size(dim=0)) #should be net function
+net = net.to(device)
+
+
 #net = torch.nn.DataParallel(net)
+#next(net.parameter())
 
 optimizer = torch.optim.SGD(net.parameters(), lr=learning_rate)
 
 
 def train(epoch):
     print(f'\n[ Train epoch: {epoch} ]')
-    net.train()
+    #net.train()
     train_loss = 0
     correct = 0
     total = len(train_dataset)
 
     for batch_idx, (inputs, targets) in enumerate(train_loader):
+        inputs, targets = inputs.to(device), targets.to(device)
 
         optimizer.zero_grad()
 
@@ -164,6 +169,7 @@ def train(epoch):
 def train2(epoch):
     net.train()
     for batch_idx, (data, target) in enumerate(train_loader):
+        data, target = data.to(device), target.to(device)
         optimizer.zero_grad()
         output = net(data)
         loss = scoreFunction2(output, target)
@@ -182,6 +188,8 @@ def test2(epoch):
     correct = 0
     with torch.no_grad():
         for data, target in test_loader:
+            data, target = data.to(device), target.to(device)
+        
             output = net(data)
             test_loss += scoreFunction2(output, target, reduction='sum').item()  # sum up batch loss
             pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
@@ -194,4 +202,4 @@ def test2(epoch):
         100. * correct / len(test_loader.dataset)))
 
 train2(0)
-test2(0)
+#test2(0)
