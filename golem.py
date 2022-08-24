@@ -126,7 +126,7 @@ test_dataset = torchvision.datasets.CIFAR10(root='../data/', train=False, downlo
 train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=128, shuffle=True, num_workers=4)
 test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=512, shuffle=False, num_workers=4)
 
-net = Net(train_dataset[0][0].size(dim=0)) #should be net function
+net = Net(train_dataset[0][0].size(dim=1)) #should be net function
 net = net.to(device)
 
 
@@ -135,7 +135,7 @@ net = net.to(device)
 
 optimizer = torch.optim.SGD(net.parameters(), lr=learning_rate)
 
-
+"""
 def train(epoch):
     print(f'\n[ Train epoch: {epoch} ]')
     #net.train()
@@ -164,6 +164,7 @@ def train(epoch):
 
     print('\nTotal benign train accuarcy:', 100. * correct / total)
     print('Total benign train loss:', train_loss)
+"""
 
 
 def train2(epoch):
@@ -171,8 +172,10 @@ def train2(epoch):
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.to(device), target.to(device)
         optimizer.zero_grad()
-        output = net(data)
-        loss = scoreFunction2(output, target)
+        #output = net(data)
+        #loss = scoreFunction2(output, target)
+        B = net.L
+        loss = scoreFunction2(B, target)
         loss.backward()
         optimizer.step()
         print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
@@ -180,7 +183,7 @@ def train2(epoch):
             100. * batch_idx / len(train_loader), loss.item()))
 
 
-
+"""
 def test2(epoch):
     print(f'\n[ Test epoch: {epoch} ]')
     net.eval()
@@ -200,6 +203,7 @@ def test2(epoch):
     print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
         test_loss, correct, len(test_loader.dataset),
         100. * correct / len(test_loader.dataset)))
+"""
 
 train2(0)
 #test2(0)
