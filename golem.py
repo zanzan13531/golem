@@ -1,3 +1,4 @@
+from telnetlib import X3PAD
 import torch
 import torchvision
 import torchvision.transforms as transforms
@@ -169,12 +170,17 @@ def train(epoch):
 
 def train2(epoch):
     net.train()
-    for batch_idx, (data, target) in enumerate(train_loader):
+    for batch_idx, (target, data) in enumerate(train_loader):
+        print(data)
+        print(target)
+        print(data.size())
+        print(target.size())
         data, target = data.to(device), target.to(device)
         optimizer.zero_grad()
         #output = net(data)
         #loss = scoreFunction2(output, target)
-        B = net.L
+        B = net.L.weight
+        print(B)
         loss = scoreFunction2(B, target)
         loss.backward()
         optimizer.step()
@@ -182,6 +188,26 @@ def train2(epoch):
             epoch, batch_idx * len(data), len(train_loader.dataset),
             100. * batch_idx / len(train_loader), loss.item()))
 
+"""
+def train3(epoch):
+
+    for e in range(epoch):
+        for i, (data, X)  in enumerate(train_loader):        
+            data, X = data.to(device), X.to(device)
+
+            optimizer.zero_grad()
+
+            X_out = net(data) # x_out = x B
+
+            score = 0.5 * torch.log((X_out - X).pow(2).sum(dim=0)).sum() # first part of L_1
+            weight = net.L.weight
+            score -= torch.det((torch.eye(net.L.weight.size(dim=0)) - weight).abs()) # second part of L_1
+            score += lambda1 * weight.norm(1) + lambda2 * h(weight)
+        
+            score.backward() # calculate gradient
+        
+            optimizer.step() # doing gradient descent
+"""
 
 """
 def test2(epoch):
@@ -205,5 +231,6 @@ def test2(epoch):
         100. * correct / len(test_loader.dataset)))
 """
 
+#train3(1)
 train2(0)
 #test2(0)
