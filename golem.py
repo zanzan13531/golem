@@ -13,8 +13,6 @@ class golem():
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
-
     class Net(torch.nn.Module):
         def __init__(self, input_dim):
             super().__init__()
@@ -24,7 +22,6 @@ class golem():
             x = self.L(x)
             return x
     
-
 
     # B = weighted adjacency matrix
     # x = set of variables being represented by the DAG
@@ -109,40 +106,36 @@ class golem():
     def h(B): #characterization of DAGness function
         return (torch.trace(torch.matrix_exp(torch.mul(B, B))) - B.size(dim = 0)) # tr(e^(B o B)) - d : trace of the matrix exponential of the hadamard product of B and itself minus d
 
-    def scoreFunction1(B, x):
-        return (L1(B, x) + lambda1 * torch.norm(B) + lambda2 * h(B)) # S2(B, x) = L2(B, x) + lambda1 * ||B||_1 + lambda2 * h(B) : first score function
+    def scoreFunction1(self, B, x):
+        return (self.L1(B, x) + self.lambda1 * torch.norm(B) + self.lambda2 * self.h(B)) # S2(B, x) = L2(B, x) + lambda1 * ||B||_1 + lambda2 * h(B) : first score function
 
-    def scoreFunction2(B, x):
-        return (L2(B, x) + lambda1 * torch.norm(B) + lambda2 * h(B)) # S2(B, x) = L2(B, x) + lambda1 * ||B||_1 + lambda2 * h(B) : second score function
+    def scoreFunction2(self, B, x):
+        return (self.L2(B, x) + self.lambda1 * torch.norm(B) + self.ambda2 * self.h(B)) # S2(B, x) = L2(B, x) + lambda1 * ||B||_1 + lambda2 * h(B) : second score function
 
+    def train(self, dataset): #should be batches by x (# of batches by d by n)
+        net = self.Net(dataset.size(dim=1))
+        net = net.to(self.device)
 
-    learning_rate = 0.1
+        #next(net.parameter())
 
+        optimizer = torch.optim.SGD(net.parameters(), lr=self.learningRate)
 
-    transform_train = transforms.Compose([
-        transforms.RandomCrop(32, padding=4),
-        transforms.RandomHorizontalFlip(),
-        transforms.ToTensor(),
-    ])
+        net.train()
+        for batch_idx, (target, data) in enumerate(dataset):
+            data, target = data.to(self.device), target.to(self.device)
+            optimizer.zero_grad()
 
-    transform_test = transforms.Compose([
-        transforms.ToTensor(),
-    ])
+            #output = net(data)
+            #loss = scoreFunction2(output, target)
 
-    train_dataset = torchvision.datasets.CIFAR10(root='../data/', train=True, download=True, transform=transform_train)
-    test_dataset = torchvision.datasets.CIFAR10(root='../data/', train=False, download=True, transform=transform_test)
+            B = net.L.weight
+            
+            score = self.scoreFunction2(B, target)
+            score.backward()
+            optimizer.step()
+            
+            print(f'current batch score for batch {batch_idx} is {score}')
 
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=128, shuffle=True, num_workers=4)
-    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=512, shuffle=False, num_workers=4)
-
-    net = Net(train_dataset[0][0].size(dim=1)) #should be net function
-    net = net.to(device)
-
-
-    #net = torch.nn.DataParallel(net)
-    #next(net.parameter())
-
-    optimizer = torch.optim.SGD(net.parameters(), lr=learning_rate)
 
     """
     def train(epoch):
@@ -175,7 +168,7 @@ class golem():
         print('Total benign train loss:', train_loss)
     """
 
-
+"""
     def train2(epoch):
         net.train()
         for batch_idx, (target, data) in enumerate(train_loader):
@@ -196,6 +189,7 @@ class golem():
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, batch_idx * len(data), len(train_loader.dataset),
                 100. * batch_idx / len(train_loader), loss.item()))
+"""
 
     """
     def train3(epoch):
@@ -239,7 +233,3 @@ class golem():
             test_loss, correct, len(test_loader.dataset),
             100. * correct / len(test_loader.dataset)))
     """
-
-    #train3(1)
-    train2(0)
-    #test2(0)
