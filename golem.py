@@ -10,7 +10,10 @@ class golem():
         self.lambda2 = lambda2
         self.learningRate = learningRate
 
+        self.net = None
+
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        self.device = 'cpu'
 
 
     class Net(torch.nn.Module):
@@ -42,11 +45,12 @@ class golem():
                 xki = x[i, k] # x^k_i : first part which takes the element at index [k, i] of x
 
                 bi = B[:, i] # B_i : ith column of B
-                bti = torch.transpose(bi, 0, 1) # B^T_i : ith column of B transposed (rotated 90 degrees)
+                #bti = torch.transpose(bi, 0, 1) # B^T_i : ith column of B transposed (rotated 90 degrees)
 
-                xk = x[k, :] # x^k : kth column of x                                                                       
+                xk = x[:, k] # x^k : kth column of x   
+                #xk = x[k, :]                                                                      
 
-                btixk = torch.mul(bti, xk) # B^T_i * x^k : matrix multiplication of the two previous parts
+                btixk = torch.mul(bi, xk) # B^T_i * x^k : matrix multiplication of the two previous parts
                 xki_btixk = xki - btixk # x^k_i - B^T_i * x^k : entire thing except for the square
                 xki_btixk_squared = xki_btixk ** 2.0 # squared
                 doubleSum = doubleSum + torch.log(xki_btixk_squared) # takes the log of the inner sum and adds it to the total sum
@@ -54,6 +58,7 @@ class golem():
         # second half:
         I = torch.eye(d) # I : creating identity matrix of the same dimention as B
         IB = torch.sub(I, B)  # I - B : subtracting B from the identity matrix
+        IB = torch.abs(IB)
         logDetIB = torch.logdet(IB) # log|det(I - B)| : I think this is a scalar?
 
         L1Result = doubleSum / 2.0 - logDetIB # final result of the L2 function
@@ -84,7 +89,8 @@ class golem():
                 bi = B[:, i] # B_i : ith column of B
                 #bti = torch.transpose(bi, 0, 1) # B^T_i : ith column of B transposed (rotated 90 degrees)
 
-                xk = x[k, :] # x^k : kth column of x                                                                       
+                xk = x[:, k] # x^k : kth column of x   
+                #xk = x[k, :]                                        
 
                 btixk = torch.mul(bi, xk) # B^T_i * x^k : matrix multiplication of the two previous parts
                 xki_btixk = xki - btixk # x^k_i - B^T_i * x^k : entire thing except for the square
@@ -96,6 +102,7 @@ class golem():
         # second half:
         I = torch.eye(d) # I : creating identity matrix of the same dimention as B
         IB = torch.sub(I, B)  # I - B : subtracting B from the identity matrix
+        IB = torch.abs(IB)
         logDetIB = torch.logdet(IB) # log|det(I - B)| : I think this is a scalar?
 
         L2Result = logDoubleSum * d / 2.0 - logDetIB # final result of the L2 function
@@ -107,38 +114,50 @@ class golem():
         return (torch.trace(torch.matrix_exp(torch.mul(B, B))) - B.size(dim = 0)) # tr(e^(B o B)) - d : trace of the matrix exponential of the hadamard product of B and itself minus d
 
     def scoreFunction1(self, B, x):
-        return (self.L1(B, x) + self.lambda1 * torch.norm(B) + self.lambda2 * self.h(B)) # S2(B, x) = L2(B, x) + lambda1 * ||B||_1 + lambda2 * h(B) : first score function
+        return (self.L1(B, x) + self.lambda1 * B.norm(1) + self.lambda2 * self.h(B)) # S2(B, x) = L2(B, x) + lambda1 * ||B||_1 + lambda2 * h(B) : first score function
 
     def scoreFunction2(self, B, x):
-        return (self.L2(B, x) + self.lambda1 * torch.norm(B) + self.lambda2 * self.h(B)) # S2(B, x) = L2(B, x) + lambda1 * ||B||_1 + lambda2 * h(B) : second score function
+        return (self.L2(B, x) + self.lambda1 * B.norm(1) + self.lambda2 * self.h(B)) # S2(B, x) = L2(B, x) + lambda1 * ||B||_1 + lambda2 * h(B) : second score function
 
-    def train(self, dataset): #should be batches by x (# of batches by d by n)
-        net = self.Net(dataset.size(dim=1))
-        net = net.to(self.device)
+    def train(self, dataset, scoreFunction=None): #should be batches by x (# of batches by d by n)
+        self.net = self.Net(dataset.size(dim=1))
+        self.net = self.net.to(self.device)
 
         #next(net.parameter())
 
-        optimizer = torch.optim.SGD(net.parameters(), lr=self.learningRate)
+        optimizer = torch.optim.SGD(self.net.parameters(), lr=self.learningRate)
 
-        net.train()
+        self.net.train()
         for batch_idx, data in enumerate(dataset): #data is the same thing as x
             data = data.to(self.device)
             optimizer.zero_grad()
 
             #output = net(data)
 
-            B = net.L.weight
+            B = self.net.L.weight
             
-            score = self.scoreFunction2(B, data)
-            score.backward()
+            score = None
+            if (scoreFunction == 1):
+                score = self.scoreFunction1(B, data)
+            else:
+                score = self.scoreFunction2(B, data)
+
+            score.sum().backward()
+
             optimizer.step()
             
             print(f'current batch score for batch {batch_idx} is {score}')
 
-testGolem = golem()
-dataset = torch.randn(size=(5, 32, 128)) # 5 batches, 32 variables, 128 number of data points
-testGolem.train(dataset)
+    def getModel(self):
+        return(self.net.L.weight)
 
+testGolem = golem()
+dataset = torch.randn(size=(1, 32, 128)) # 5 batches, 32 variables, 128 number of data points
+testGolem.train(dataset, 1)
+testGolem.train(dataset, 2)
+
+print(testGolem.getModel())
+print(testGolem.getModel().size())
 
 """
     def train(epoch):
