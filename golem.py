@@ -121,16 +121,15 @@ class golem():
         optimizer = torch.optim.SGD(net.parameters(), lr=self.learningRate)
 
         net.train()
-        for batch_idx, (target, data) in enumerate(dataset):
-            data, target = data.to(self.device), target.to(self.device)
+        for batch_idx, data in enumerate(dataset):
+            data = data.to(self.device)
             optimizer.zero_grad()
 
             #output = net(data)
-            #loss = scoreFunction2(output, target)
 
             B = net.L.weight
             
-            score = self.scoreFunction2(B, target)
+            score = self.scoreFunction2(B, data)
             score.backward()
             optimizer.step()
             
