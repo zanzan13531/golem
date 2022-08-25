@@ -121,7 +121,7 @@ class golem():
         optimizer = torch.optim.SGD(net.parameters(), lr=self.learningRate)
 
         net.train()
-        for batch_idx, data in enumerate(dataset):
+        for batch_idx, data in enumerate(dataset): #data is the same thing as x
             data = data.to(self.device)
             optimizer.zero_grad()
 
@@ -135,8 +135,12 @@ class golem():
             
             print(f'current batch score for batch {batch_idx} is {score}')
 
+testGolem = golem()
+dataset = torch.randn(size=(5, 32, 128)) # 5 batches, 32 variables, 128 number of data points
+golem.train(dataset)
 
-    """
+
+"""
     def train(epoch):
         print(f'\n[ Train epoch: {epoch} ]')
         #net.train()
@@ -165,7 +169,7 @@ class golem():
 
         print('\nTotal benign train accuarcy:', 100. * correct / total)
         print('Total benign train loss:', train_loss)
-    """
+"""
 
 """
     def train2(epoch):
@@ -190,7 +194,7 @@ class golem():
                 100. * batch_idx / len(train_loader), loss.item()))
 """
 
-    """
+"""
     def train3(epoch):
 
         for e in range(epoch):
@@ -209,9 +213,9 @@ class golem():
                 score.backward() # calculate gradient
             
                 optimizer.step() # doing gradient descent
-    """
+"""
 
-    """
+"""
     def test2(epoch):
         print(f'\n[ Test epoch: {epoch} ]')
         net.eval()
@@ -231,4 +235,4 @@ class golem():
         print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
             test_loss, correct, len(test_loader.dataset),
             100. * correct / len(test_loader.dataset)))
-    """
+"""
