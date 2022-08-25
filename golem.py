@@ -26,7 +26,7 @@ class golem():
     # B = weighted adjacency matrix
     # x = set of variables being represented by the DAG
     # !!! assuming both B is a square of d by d size, and that x is a 2D matrix with dimensions d by x, where there are d variables and n cases of each (basically data points)
-    def L1(B, x): 
+    def L1(self, B, x): 
 
         # first half: 
         d = x.size(dim = 0) # d : number of variables in x
@@ -64,7 +64,7 @@ class golem():
     # B = weighted adjacency matrix
     # x = set of variables being represented by the DAG
     # !!! assuming both B is a square of d by d size, and that x is a 2D matrix with dimensions d by x, where there are d variables and n cases of each (basically data points)
-    def L2(B, x): 
+    def L2(self, B, x): 
 
         # first half: 
         d = x.size(dim = 0) # d : number of variables in x (dimension of b)
@@ -103,14 +103,14 @@ class golem():
         return(L2Result)
 
 
-    def h(B): #characterization of DAGness function
+    def h(self, B): #characterization of DAGness function
         return (torch.trace(torch.matrix_exp(torch.mul(B, B))) - B.size(dim = 0)) # tr(e^(B o B)) - d : trace of the matrix exponential of the hadamard product of B and itself minus d
 
     def scoreFunction1(self, B, x):
         return (self.L1(B, x) + self.lambda1 * torch.norm(B) + self.lambda2 * self.h(B)) # S2(B, x) = L2(B, x) + lambda1 * ||B||_1 + lambda2 * h(B) : first score function
 
     def scoreFunction2(self, B, x):
-        return (self.L2(B, x) + self.lambda1 * torch.norm(B) + self.ambda2 * self.h(B)) # S2(B, x) = L2(B, x) + lambda1 * ||B||_1 + lambda2 * h(B) : second score function
+        return (self.L2(B, x) + self.lambda1 * torch.norm(B) + self.lambda2 * self.h(B)) # S2(B, x) = L2(B, x) + lambda1 * ||B||_1 + lambda2 * h(B) : second score function
 
     def train(self, dataset): #should be batches by x (# of batches by d by n)
         net = self.Net(dataset.size(dim=1))
@@ -137,7 +137,7 @@ class golem():
 
 testGolem = golem()
 dataset = torch.randn(size=(5, 32, 128)) # 5 batches, 32 variables, 128 number of data points
-golem.train(dataset)
+testGolem.train(dataset)
 
 
 """
