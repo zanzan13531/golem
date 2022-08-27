@@ -116,7 +116,7 @@ class golem():
     def scoreFunction2(self, B, x):
         return (self.L2(B, x) + self.lambda1 * B.norm(1) + self.lambda2 * self.h(B)) # S2(B, x) = L2(B, x) + lambda1 * ||B||_1 + lambda2 * h(B) : second score function
 
-    def train(self, dataset, scoreFunction=None): #should be batches by x (# of batches by d by n)
+    def train(self, dataset, epochs=1, scoreFunction=None): #should be batches by x (# of batches by d by n)
         self.net = self.Net(dataset.size(dim=1))
         self.net = self.net.to(self.device)
 
@@ -128,25 +128,27 @@ class golem():
         optimizer = torch.optim.SGD(self.net.parameters(), lr=self.learningRate)
 
         self.net.train()
-        for batch_idx, data in enumerate(dataset): #data is the same thing as x
-            data = data.to(self.device)
-            optimizer.zero_grad()
 
-            #output = net(data)
+        for x in range(epochs):
+            for batch_idx, data in enumerate(dataset): #data is the same thing as x
+                data = data.to(self.device)
+                optimizer.zero_grad()
 
-            B = self.net.L.weight
+                #output = net(data)
+
+                B = self.net.L.weight
             
-            score = None
-            if (scoreFunction == 1):
-                score = self.scoreFunction1(B, data).sum()
-            else:
-                score = self.scoreFunction2(B, data).sum()
+                score = None
+                if (scoreFunction == 1):
+                    score = self.scoreFunction1(B, data).sum()
+                else:
+                    score = self.scoreFunction2(B, data).sum()
 
-            score.backward()
-
-            optimizer.step()
+                score.backward()
+    
+                optimizer.step()
             
-            print(f'current batch score for batch {batch_idx} is {score}')
+                print(f'current batch score for epoch {x} batch {batch_idx} is {score}')
 
     def getModel(self):
         return(self.net.L.weight)
