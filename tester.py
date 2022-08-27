@@ -14,3 +14,6 @@ testGolem.train(dataset, 2)
 
 print(testGolem.getModel())
 print(testGolem.getModel().size())
+
+npResult = testGolem.getModel().detach().numpy()
+np.savetxt("result.txt", npResult)

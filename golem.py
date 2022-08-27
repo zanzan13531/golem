@@ -31,8 +31,9 @@ class golem():
     def L1(self, B, x): 
 
         # first half: 
-        d = x.size(dim = 0) # d : number of variables in x
-        n = x.size(dim = 1); # n : number of data points per variable in x
+        d = x.size(dim = 1) # d : number of variables in x
+        n = x.size(dim = 0); # n : number of data points per variable in x
+
 
         doubleSum = 0 # initlaizing sum
 
@@ -41,13 +42,13 @@ class golem():
 
             for k in range(n): # inner sum
 
-                xki = x[i, k] # x^k_i : first part which takes the element at index [k, i] of x
+                xki = x[k, i] # x^k_i : first part which takes the element at index [k, i] of x
 
                 bi = B[:, i] # B_i : ith column of B
                 #bti = torch.transpose(bi, 0, 1) # B^T_i : ith column of B transposed (rotated 90 degrees)
 
-                xk = x[:, k] # x^k : kth column of x   
-                #xk = x[k, :]                                                                      
+                #xk = x[:, k] # x^k : kth column of x   
+                xk = x[k, :]                                                                      
 
                 btixk = torch.mul(bi, xk) # B^T_i * x^k : matrix multiplication of the two previous parts
                 xki_btixk = xki - btixk # x^k_i - B^T_i * x^k : entire thing except for the square
@@ -71,11 +72,8 @@ class golem():
     def L2(self, B, x): 
 
         # first half: 
-        d = x.size(dim = 0) # d : number of variables in x (dimension of b)
-        n = x.size(dim = 1); # n : number of data points per variable in x
-
-        print(d)
-        print(n)
+        d = x.size(dim = 1) # d : number of variables in x (dimension of b)
+        n = x.size(dim = 0); # n : number of data points per variable in x
 
         doubleSum = 0 # initlaizing sum
 
@@ -83,13 +81,13 @@ class golem():
         for i in range (d): # outer sum
             for k in range(n): # inner sum
 
-                xki = x[i, k] # x^k_i : first part which takes the element at index [k, i] of x
+                xki = x[k, i] # x^k_i : first part which takes the element at index [k, i] of x
 
                 bi = B[:, i] # B_i : ith column of B
                 #bti = torch.transpose(bi, 0, 1) # B^T_i : ith column of B transposed (rotated 90 degrees)
 
-                xk = x[:, k] # x^k : kth column of x   
-                #xk = x[k, :]                                        
+                #xk = x[:, k] # x^k : kth column of x   
+                xk = x[k, :]                                        
 
                 btixk = torch.mul(bi, xk) # B^T_i * x^k : matrix multiplication of the two previous parts
                 xki_btixk = xki - btixk # x^k_i - B^T_i * x^k : entire thing except for the square
@@ -119,8 +117,6 @@ class golem():
         return (self.L2(B, x) + self.lambda1 * B.norm(1) + self.lambda2 * self.h(B)) # S2(B, x) = L2(B, x) + lambda1 * ||B||_1 + lambda2 * h(B) : second score function
 
     def train(self, dataset, scoreFunction=None): #should be batches by x (# of batches by d by n)
-        print(dataset.size())
-        print(dataset.dim())
         self.net = self.Net(dataset.size(dim=1))
         self.net = self.net.to(self.device)
 
@@ -133,7 +129,6 @@ class golem():
 
         self.net.train()
         for batch_idx, data in enumerate(dataset): #data is the same thing as x
-            print(data)
             data = data.to(self.device)
             optimizer.zero_grad()
 
@@ -143,11 +138,11 @@ class golem():
             
             score = None
             if (scoreFunction == 1):
-                score = self.scoreFunction1(B, data)
+                score = self.scoreFunction1(B, data).sum()
             else:
-                score = self.scoreFunction2(B, data)
+                score = self.scoreFunction2(B, data).sum()
 
-            score.sum().backward()
+            score.backward()
 
             optimizer.step()
             
