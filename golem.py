@@ -151,13 +151,6 @@ class golem():
     def getModel(self):
         return(self.net.L.weight)
 
-testGolem = golem()
-dataset = torch.randn(size=(1, 32, 128)) # 5 batches, 32 variables, 128 number of data points
-testGolem.train(dataset, 1)
-testGolem.train(dataset, 2)
-
-print(testGolem.getModel())
-print(testGolem.getModel().size())
 
 """
     def train(epoch):
