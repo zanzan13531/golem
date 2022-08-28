@@ -2,12 +2,15 @@ import torch
 import torchvision
 import torchvision.transforms as transforms
 
+from torch.utils.data import DataLoader
+
 
 class golem():
-    def __init__(self, *, lambda1=1, lambda2=1, learningRate=0.1):
+    def __init__(self, *, lambda1=1, lambda2=1, learningRate=0.001):
         self.lambda1 = lambda1
         self.lambda2 = lambda2
         self.learningRate = learningRate
+        self.batchSize = 512
 
         self.net = None
 
@@ -130,13 +133,15 @@ class golem():
         self.net.train()
 
         for x in range(epochs):
-            for batch_idx, data in enumerate(dataset): #data is the same thing as x
+            for i, data in enumerate(dataset): #data is the same thing as x
                 data = data.to(self.device)
                 optimizer.zero_grad()
 
                 #output = net(data)
 
                 B = self.net.L.weight
+
+                #print(B)
             
                 score = None
                 if (scoreFunction == 1):
@@ -148,7 +153,42 @@ class golem():
     
                 optimizer.step()
             
-                print(f'current batch score for epoch {x} batch {batch_idx} is {score}')
+                print(f'current batch score for epoch {x} batch {i} is {score}')
 
     def getModel(self):
         return(self.net.L.weight)
+
+    def train2(self, dataset, epochs=1, scoreFunction=None): #should be batches by x (# of batches by d by n)
+        self.net = self.Net(dataset.size(dim=1))
+        self.net = self.net.to(self.device)
+
+        dataloader = DataLoader(dataset=dataset, batch_size=self.batchSize)
+
+        #next(net.parameter())
+
+        optimizer = torch.optim.SGD(self.net.parameters(), lr=self.learningRate)
+
+        self.net.train()
+
+        for x in range(epochs):
+            for i, data in enumerate(dataloader): #data is the same thing as x
+                data = data.to(self.device)
+                optimizer.zero_grad()
+
+                #output = net(data)
+
+                B = self.net.L.weight
+
+                #print(B)
+            
+                score = None
+                if (scoreFunction == 1):
+                    score = self.scoreFunction1(B, data).sum()
+                else:
+                    score = self.scoreFunction2(B, data).sum()
+
+                score.backward()
+    
+                optimizer.step()
+            
+                print(f'current batch score for epoch {x} batch {i} is {score}')
