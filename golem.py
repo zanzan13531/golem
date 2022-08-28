@@ -162,6 +162,8 @@ class golem():
         self.net = self.Net(dataset.size(dim=1))
         self.net = self.net.to(self.device)
 
+        self.net.float()
+
         dataloader = DataLoader(dataset=dataset, batch_size=self.batchSize)
 
         #next(net.parameter())
@@ -181,11 +183,13 @@ class golem():
 
                 #print(B)
             
-                score = None
-                if (scoreFunction == 1):
-                    score = self.scoreFunction1(B, data).sum()
-                else:
-                    score = self.scoreFunction2(B, data).sum()
+
+                X_out = self.net(data.float()) # x_out = x B
+        
+                score = 0.5 * torch.log((X_out - data).pow(2).sum(dim=0)).sum() # first part of L_1
+                weight = self.net.L.weight
+                score -= torch.det((torch.eye(dataset.size(dim=1)) - weight).abs()) # second part of L_1
+                score += self.lambda1 * weight.norm(1) + self.lambda2 * self.h(weight)
 
                 score.backward()
     
