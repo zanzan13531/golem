@@ -15,7 +15,6 @@ class golem():
         self.net = None
 
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        self.device = 'cpu'
 
 
     class Net(torch.nn.Module):
@@ -196,3 +195,27 @@ class golem():
                 optimizer.step()
             
                 print(f'current batch score for epoch {x} batch {i} is {score}')
+
+    def getLambda1(self):
+        return (self.lambda1)
+
+    def getLambda2(self):
+        return (self.lambda2)
+
+    def getLearningRate(self):
+        return (self.learningRate)
+
+    def getBatchSize(self):
+        return (self.batchSize)
+
+    def setLambda1(self, lambda1):
+        self.lambda1 = lambda1
+
+    def setLambda2(self, lambda2):
+        self.lambda2 = lambda2
+
+    def setLearningRate(self, learningRate):
+        self.learningRate = learningRate
+
+    def setBatchSize(self, batchSize):
+        self.batchSize = batchSize
