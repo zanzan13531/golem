@@ -55,7 +55,8 @@ class golem():
                 btixk = torch.matmul(xk.float(), bti.float()) # B^T_i * x^k : matrix multiplication of the two previous parts
                 xki_btixk = xki - btixk # x^k_i - B^T_i * x^k : entire thing except for the square
                 xki_btixk_squared = xki_btixk ** 2.0 # squared
-                doubleSum = doubleSum + torch.log(xki_btixk_squared) # takes the log of the inner sum and adds it to the total sum
+                squared_logged = torch.log10(xki_btixk_squared)
+                doubleSum = doubleSum + squared_logged # takes the log of the inner sum and adds it to the total sum
 
         # second half:
         I = torch.eye(d) # I : creating identity matrix of the same dimention as B
