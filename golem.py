@@ -117,8 +117,7 @@ class golem():
         return (self.L1(B, x) + self.lambda1 * B.norm(1) + self.lambda2 * self.h(B)) # S2(B, x) = L2(B, x) + lambda1 * ||B||_1 + lambda2 * h(B) : first score function
 
     def scoreFunction2(self, B, x):
-        #return (self.L2(B, x) + self.lambda1 * B.norm(1) + self.lambda2 * self.h(B)) # S2(B, x) = L2(B, x) + lambda1 * ||B||_1 + lambda2 * h(B) : second score function
-        return (self.L2v2(B, x) + self.lambda1 * B.norm(1) + self.lambda2 * self.h(B)) # S2(B, x) = L2(B, x) + lambda1 * ||B||_1 + lambda2 * h(B) : second score function
+        return (self.L2(B, x) + self.lambda1 * B.norm(1) + self.lambda2 * self.h(B)) # S2(B, x) = L2(B, x) + lambda1 * ||B||_1 + lambda2 * h(B) : second score function
 
     def train(self, dataset, epochs=1, scoreFunction=None): #should be batches by x (# of batches by d by n)
         self.net = self.Net(dataset.size(dim=1))
