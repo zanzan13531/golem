@@ -10,12 +10,12 @@ tensorSample = torch.from_numpy(npSample)
 testGolem = golem.golem()
 dataset = tensorSample
 
-testGolem.train(dataset, 10, 2)
+testGolem.train(dataset, 20, 1)
 
 print(testGolem.getModel())
 print(testGolem.getModel().size())
 
-testGolem.train(dataset, 10, 2)
+testGolem.train(dataset, 20, 2)
 
 print(testGolem.getModel())
 print(testGolem.getModel().size())
