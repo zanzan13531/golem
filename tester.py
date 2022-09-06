@@ -1,4 +1,4 @@
-import golem
+import Golem
 import numpy as np
 import torch
 
@@ -7,7 +7,7 @@ npSample = np.loadtxt("sample.txt")
 tensorSample = torch.from_numpy(npSample)
 
 
-testGolem = golem.golem()
+testGolem = Golem.golem()
 dataset = tensorSample
 
 testGolem.train(dataset, 20, 1)

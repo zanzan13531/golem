@@ -5,7 +5,7 @@ import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 
 
-class golem():
+class Golem():
     def __init__(self, *, lambda1=1, lambda2=1, learningRate=0.001):
         self.lambda1 = lambda1
         self.lambda2 = lambda2
@@ -41,6 +41,8 @@ class golem():
         # !!! this assumes that the sum results in a scalar, not sure if that's right or not
         for i in range (d): # outer sum
 
+            innerSum = 0
+
             for k in range(n): # inner sum
 
                 xki = x[k, i] # x^k_i : first part which takes the element at index [k, i] of x
@@ -55,14 +57,16 @@ class golem():
                 btixk = torch.matmul(xk.float(), bti.float()) # B^T_i * x^k : matrix multiplication of the two previous parts
                 xki_btixk = xki - btixk # x^k_i - B^T_i * x^k : entire thing except for the square
                 xki_btixk_squared = xki_btixk ** 2.0 # squared
-                squared_logged = torch.log10(xki_btixk_squared)
-                doubleSum = doubleSum + squared_logged # takes the log of the inner sum and adds it to the total sum
+                innerSum += xki_btixk_squared # takes the log of the inner sum and adds it to the total sum
+
+            doubleSum += torch.log(innerSum)
 
         # second half:
         I = torch.eye(d) # I : creating identity matrix of the same dimention as B
         IB = torch.sub(I, B)  # I - B : subtracting B from the identity matrix
-        IB = torch.abs(IB)
-        logDetIB = torch.logdet(IB) # log|det(I - B)| : I think this is a scalar?
+        detIB = torch.det(IB)
+        absIB = torch.abs(detIB)
+        logDetIB = torch.log(absIB) # log|det(I - B)| : I think this is a scalar?
 
         L1Result = doubleSum / 2.0 - logDetIB # final result of the L2 function
 
@@ -103,8 +107,9 @@ class golem():
         # second half:
         I = torch.eye(d) # I : creating identity matrix of the same dimention as B
         IB = torch.sub(I, B)  # I - B : subtracting B from the identity matrix
-        IB = torch.abs(IB)
-        logDetIB = torch.logdet(IB) # log|det(I - B)| : I think this is a scalar?
+        detIB = torch.det(IB)
+        absIB = torch.abs(detIB)
+        logDetIB = torch.log(absIB) # log|det(I - B)| : I think this is a scalar?
 
         L2Result = logDoubleSum * d / 2.0 - logDetIB # final result of the L2 function
 
